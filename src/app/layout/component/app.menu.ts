@@ -293,9 +293,9 @@ export class AppMenu implements OnInit {
     ngOnInit() {
         this.model = [
             {
-                label: 'Home',
+                label: 'Inicio',
                 items: [
-                    { label: 'Dashboard', icon: FontAwesome.HOUSE_REGULAR, routerLink: ['/'] },
+                    // { label: 'Dashboard', icon: FontAwesome.HOUSE_REGULAR, routerLink: ['/'] },
                     {
                         label: 'Mi Perfil',
                         icon: FontAwesome.USER_REGULAR,

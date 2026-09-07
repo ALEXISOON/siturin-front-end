@@ -28,11 +28,16 @@ import {
 } from '@/pages/core/roles/guide-technician/components/cadastre/interfaces/cadastre.interface';
 import { ReportsHttpService } from '@/pages/core/shared/services';
 import { CatalogueCadastreStatesStateEnum } from '@/pages/core/shared/enums';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { InputText } from 'primeng/inputtext';
+import { debounceTime } from 'rxjs';
+import { InputGroupAddon } from 'primeng/inputgroupaddon';
+import { InputGroup } from 'primeng/inputgroup';
 
 @Component({
     selector: 'app-cadastre',
-    standalone:true,
-    imports: [TableModule, ButtonModule, DividerModule, PanelModule, EstablishmentNumberPipe, Tag, ProcessStateSeverityPipe, Tooltip, ButtonActionComponent],
+    standalone: true,
+    imports: [TableModule, ButtonModule, DividerModule, PanelModule, EstablishmentNumberPipe, Tag, ProcessStateSeverityPipe, Tooltip, ButtonActionComponent, InputText, ReactiveFormsModule, InputGroupAddon, InputGroup],
     templateUrl: './cadastre.component.html',
     providers: [DialogService]
 })
@@ -49,6 +54,7 @@ export default class CadastreComponent implements OnInit {
     protected buttonActions: MenuItem[] = [];
     protected isButtonActionsEnabled: boolean = false;
     protected currentDate = new Date();
+    protected searchControl = new FormControl('');
     private dialogService = inject(DialogService);
     ref?: DynamicDialogRef | null;
 
@@ -58,10 +64,14 @@ export default class CadastreComponent implements OnInit {
 
     ngOnInit() {
         this.findCadastres();
+        this.searchControl.valueChanges.pipe(
+            debounceTime(500)
+        ).
+        subscribe(() => this.findCadastres());
     }
 
     findCadastres() {
-        this.internalInspectionService.findCadastres('1', true).subscribe({
+        this.internalInspectionService.findCadastres('1', true, this.searchControl.value!).subscribe({
             next: (response) => {
                 this.items.set(response);
             }

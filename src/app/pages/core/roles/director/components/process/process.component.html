@@ -18,15 +18,30 @@
                         <p-button
                             [icon]="PrimeIcons.DOWNLOAD"
                             label="Descargar Bandeja"
-                            severity="success"></p-button>
+                            severity="success"
+                            (onClick)="downloadProcessesByDirector()"
+                        ></p-button>
                     </div>
                 </div>
             </div>
 
             <div class="custom-form-card">
                 <div class="custom-form-grid md:grid-cols-12">
-                    <div class="custom-form-title md:col-span-12">
+                    <div class="custom-form-field-row  md:col-span-12">
                         <h5>Trámites en Proceso:</h5>
+
+                        <p-button
+                            [icon]="PrimeIcons.FILTER"
+                            label="Filtros"
+                            severity="info"
+                            (onClick)="filterModal.set(true)"></p-button>
+
+                        <p-button
+                            label="Borrar Filtros"
+                            severity="danger"
+                            styleClass="w-full"
+                            [icon]="FontAwesome.TRASH_SOLID"
+                            (onClick)="findProcesses()"></p-button>
                     </div>
                     <div class="custom-form-field md:col-span-12">
                         <p-table
@@ -91,7 +106,7 @@
                                     <td>{{ item?.process?.type?.name }}</td>
                                     <td>
                                         @if (item?.process?.cadastre) {
-                                            {{ item?.process?.cadastre?.registerNumber }}
+                                            {{ item?.process?.cadastre?.state?.name }}
                                         } @else {
                                             Sin estado
                                         }
@@ -222,3 +237,159 @@
         </p-tabpanel>
     </p-tabpanels>
 </p-tabs>
+
+<p-dialog
+    [visible]="filterModal()"
+    (visibleChange)="filterModal.set($event)"
+    [modal]="true"
+    [style]="{ width: '100%' }"
+    header="Filtros">
+    <div class="custom-form-card">
+        <form [formGroup]="filterForm" class="custom-form-grid md:grid-cols-12">
+            <!--registerNumber-->
+            <div class="custom-form-field md:col-span-3">
+                <label
+                    appLabel
+                    for="registerNumber"
+                    label="Número de Registro">
+                </label>
+
+                <input pInputText type="text" formControlName="registerNumber"
+                       placeholder="Ej: 1234567891001.001.10123456" />
+            </div>
+
+            <!--establishmentNumber-->
+            <div class="custom-form-field md:col-span-3">
+                <label
+                    appLabel
+                    for="establishmentNumber"
+                    label="Código de Establecimiento"
+                >
+                </label>
+
+                <input pInputText type="text" formControlName="establishmentNumber" placeholder="Ej: 1" />
+            </div>
+
+            <!--legalName-->
+            <div class="custom-form-field md:col-span-3">
+                <label
+                    appLabel
+                    for="legalName"
+                    label="Razón Social">
+                </label>
+
+                <input pInputText type="text" formControlName="legalName" placeholder="Ej: Juan Perez" />
+            </div>
+
+            <!--classification-->
+            <div class="custom-form-field md:col-span-3">
+                <label
+                    appLabel
+                    for="classification"
+                    label="Classificación">
+                </label>
+
+                <input pInputText type="text" formControlName="classification" placeholder="Ej: Guía Local" />
+            </div>
+
+            <!--processType-->
+            <div class="custom-form-field md:col-span-3">
+                <label
+                    appLabel
+                    for="processType"
+                    label="Tipo de Trámite">
+                </label>
+
+                <input pInputText type="text" formControlName="processType"
+                       placeholder="Ej: Registro, Reingreso, Actualización, etc." />
+            </div>
+
+            <!--cadastreState-->
+            <div class="custom-form-field md:col-span-3">
+                <label
+                    appLabel
+                    for="cadastreState"
+                    label="Estado del Registro">
+                </label>
+
+                <input pInputText type="text" formControlName="cadastreState" placeholder="Ej: Ratificado, Inactivo" />
+            </div>
+
+            <!--startedAt-->
+            <div class="custom-form-field md:col-span-3">
+                <label
+                    appLabel
+                    for="startedAt"
+                    label="Fecha Inicio">
+                </label>
+
+                <p-datePicker formControlName="startedAt" appendTo="body" />
+            </div>
+
+            <!--endedAt-->
+            <div class="custom-form-field md:col-span-3">
+                <label
+                    appLabel
+                    for="endedAt"
+                    label="Fecha Fin">
+                </label>
+
+                <p-datePicker formControlName="endedAt" appendTo="body" (onSelect)="validateStartedAt()" />
+            </div>
+
+            <!--province-->
+            <div class="custom-form-field md:col-span-3">
+                <label
+                    appLabel
+                    for="province"
+                    label="Provincia">
+                </label>
+
+                <input pInputText type="text" formControlName="province" placeholder="Ej: Pichincha" />
+            </div>
+
+            <!--canton-->
+            <div class="custom-form-field md:col-span-3">
+                <label
+                    appLabel
+                    for="canton"
+                    label="Cantón">
+                </label>
+
+                <input pInputText type="text" formControlName="canton" placeholder="Ej: Mejía" />
+            </div>
+
+            <!--parish-->
+            <div class="custom-form-field md:col-span-3">
+                <label
+                    appLabel
+                    for="parish"
+                    label="Parroquia">
+                </label>
+
+                <input pInputText type="text" formControlName="parish" placeholder="Ej: Aloasí" />
+            </div>
+
+            <!--            <div class="custom-form-field md:col-span-12">-->
+            <!--                <p-divider />-->
+            <!--            </div>-->
+
+            <div class="custom-form-field md:col-span-1 mt-6">
+                <p-button
+                    label="Limpiar"
+                    severity="danger"
+                    styleClass="w-full"
+                    [icon]="FontAwesome.TRASH_SOLID"
+                    (onClick)="filterForm.reset()"></p-button>
+            </div>
+
+            <div class="custom-form-field md:col-span-2 mt-6">
+                <p-button
+                    label="Aplicar Filtros"
+                    styleClass="w-full"
+                    [icon]="FontAwesome.FILTER_SOLID"
+                    (onClick)="findProcesses(true)"></p-button>
+            </div>
+        </form>
+    </div>
+</p-dialog>

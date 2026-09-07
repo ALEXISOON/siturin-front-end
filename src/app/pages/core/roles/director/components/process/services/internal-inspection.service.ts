@@ -6,6 +6,9 @@ import { HttpResponseInterface } from '@/pages/auth/interfaces';
 import { CustomMessageService } from '@utils/services';
 import { map } from 'rxjs';
 import { AuthService } from '@/pages/auth/auth.service';
+import {
+    ProcessFilters
+} from '@/pages/core/roles/guide-technician/components/process/services/internal-inspection.service';
 
 @Injectable({
     providedIn: 'root'
@@ -28,14 +31,19 @@ export class InternalInspectionService {
         );
     }
 
-    findProcesses(page: string, isCurrent: boolean) {
+    findProcesses(page: string, isCurrent: boolean, filters: ProcessFilters) {
         const url = `${this.apiUrl}/process-guides/processes`;
 
-        const params = new HttpParams()
+        let params = new HttpParams()
             .append('page', page)
             .append('rolCode', this.authService.role.code)
-            .append('isCurrent', isCurrent)
-        ;
+            .append('isCurrent', isCurrent);
+
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== '') {
+                params = params.set(key, value);
+            }
+        });
 
         return this.httpClient.get<HttpResponseInterface>(url, { params }).pipe(
             map((response) => {

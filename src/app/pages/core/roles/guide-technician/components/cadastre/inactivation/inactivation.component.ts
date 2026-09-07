@@ -101,7 +101,7 @@ export class InactivationComponent implements OnInit {
     }
 
     async loadCatalogues() {
-        this.causes = await this.catalogueService.findByType(CatalogueTypeEnum.guide_inactivation_causes);
+        this.causes = await this.catalogueService.findByType(CatalogueTypeEnum.guide_internal_inactivation_causes);
     }
 
     closeModal() {

@@ -94,10 +94,8 @@ export default class ProcessComponent implements OnInit {
             }));
     }
 
-    validateStartedAt(){
-        console.log('validateStartedAt')
+    validateStartedAt() {
         const valid = isAfter(new Date(this.filterForm.controls['startedAt'].value!), new Date(this.filterForm.controls['endedAt'].value!));
-        console.log(valid)
     }
 
     findProcesses(isFilter = false) {
@@ -106,14 +104,18 @@ export default class ProcessComponent implements OnInit {
             this.activeFilters = [];
         }
 
-        if (isFilter) this.applyActiveFilters();
-
         this.isFiltering.set(isFilter);
 
-        const startedAtFormat = format(new Date(this.filterForm.controls['startedAt'].value!), 'yyyy-MM-dd');
-        const endedAtFormat = format(new Date(this.filterForm.controls['endedAt'].value!), 'yyyy-MM-dd');
-        this.filterForm.controls['startedAt'].patchValue(startedAtFormat);
-        this.filterForm.controls['endedAt'].patchValue(endedAtFormat);
+        if (isFilter) {
+            this.applyActiveFilters();
+
+            if (this.filterForm.controls['startedAt'].value && this.filterForm.controls['endedAt'].value) {
+                const startedAtFormat = format(new Date(this.filterForm.controls['startedAt'].value!), 'yyyy-MM-dd');
+                const endedAtFormat = format(new Date(this.filterForm.controls['endedAt'].value!), 'yyyy-MM-dd');
+                this.filterForm.controls['startedAt'].patchValue(startedAtFormat);
+                this.filterForm.controls['endedAt'].patchValue(endedAtFormat);
+            }
+        }
 
         const filters = this.filterForm.getRawValue();
 
@@ -125,7 +127,25 @@ export default class ProcessComponent implements OnInit {
         });
     }
 
-    findCompletedProcesses() {
+    findCompletedProcesses(isFilter = false) {
+        if (!isFilter) {
+            this.filterForm.reset();
+            this.activeFilters = [];
+        }
+
+        this.isFiltering.set(isFilter);
+
+        if (isFilter) this.applyActiveFilters();
+
+        if (isFilter) {
+            if (this.filterForm.controls['startedAt'].value && this.filterForm.controls['endedAt'].value) {
+                const startedAtFormat = format(new Date(this.filterForm.controls['startedAt'].value!), 'yyyy-MM-dd');
+                const endedAtFormat = format(new Date(this.filterForm.controls['endedAt'].value!), 'yyyy-MM-dd');
+                this.filterForm.controls['startedAt'].patchValue(startedAtFormat);
+                this.filterForm.controls['endedAt'].patchValue(endedAtFormat);
+            }
+        }
+
         const filters = this.filterForm.getRawValue();
 
         this.internalInspectionService.findProcesses('1', false, filters).subscribe({

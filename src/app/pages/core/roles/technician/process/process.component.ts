@@ -13,8 +13,7 @@ import { Fluid } from 'primeng/fluid';
 @Component({
     selector: 'app-process',
     imports: [TableModule, ButtonModule, DividerModule, PanelModule, DownloadDocumentsComponent, ScheduleComponent, ResultsComponent, Message, Fluid],
-    templateUrl: './process.component.html',
-    styleUrl: './process.component.scss'
+    templateUrl: './process.component.html'
 })
 export default class ProcessComponent {
     @ViewChildren(DownloadDocumentsComponent) private downloadDocumentsComponent!: QueryList<DownloadDocumentsComponent>;

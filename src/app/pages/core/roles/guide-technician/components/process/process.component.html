@@ -151,7 +151,7 @@
                                     <td>{{ item?.process?.type?.name }}</td>
                                     <td>
                                         @if (item?.process?.cadastre) {
-                                            {{ item?.process?.cadastre?.registerNumber }}
+                                            {{ item?.process?.cadastre?.state?.name }}
                                         } @else {
                                             Sin estado
                                         }
