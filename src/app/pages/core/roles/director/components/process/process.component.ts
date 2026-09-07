@@ -159,7 +159,7 @@ export default class ProcessComponent implements OnInit {
     }
 
     protected downloadProcessesByDirector() {
-        this.reportsHttpService.downloadProcessesByTechnician(this.authService.role.code, true);
+        this.reportsHttpService.downloadProcessesByDirector(this.authService.role.code, true);
     }
 
     protected readonly es = es;

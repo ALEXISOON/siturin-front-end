@@ -77,4 +77,26 @@ export class ReportsHttpService {
             downloadLink.click();
         });
     }
+
+    downloadProcessesByDirector(roleCode: string, isCurrent: boolean) {
+        const url = `${this.apiUrlExternalXLSX}/technician-guide/processes`;
+
+        const params = new HttpParams()
+            .append('rolCode', roleCode)
+            .append('isCurrent', isCurrent);
+
+        this._httpClient.get<BlobPart>(url, { params, responseType: 'blob' as 'json' }).subscribe((response) => {
+            const filePath = URL.createObjectURL(new Blob([response]));
+
+            const downloadLink = document.createElement('a');
+
+            downloadLink.href = filePath;
+
+            downloadLink.setAttribute('download', `bandeja_director.xlsx`);
+
+            document.body.appendChild(downloadLink);
+
+            downloadLink.click();
+        });
+    }
 }
