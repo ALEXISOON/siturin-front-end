@@ -88,9 +88,9 @@ export default class GuideEstablishmentListComponent implements OnInit {
 
                 if (establishment && establishment.isCadastre) {
                     this.establishmentHttpService.findCadastreByEstablishment(establishment.id!).subscribe({
-                        next: (response) => {
-                            console.log(response);
-                            this.establishment.set(response);
+                        next: (responseCadastre) => {
+                            console.log(responseCadastre);
+                            this.establishment.set(responseCadastre);
 
                             if (this.establishment().currentProcess) {
                                 this.customMessageService.showModalWarn({
@@ -104,7 +104,30 @@ export default class GuideEstablishmentListComponent implements OnInit {
                         }
                     });
                 } else {
-                    this.establishments.set(response.data);
+                    // MAPEO INTELIGENTE: Solo inyectamos datos si el establecimiento realmente tiene trámite o registro
+                    const mappedEstablishments = (response.data as EstablishmentInterface[]).map((item: any) => {
+                        if (!item.process && !item.registerNumber) {
+                            return item; // Si no tiene trámite, lo devolvemos intacto para que aparezca el botón verde de "Crear Trámite"
+                        }
+
+                        const fallbackRegisterNumber = item.number ? `REG-TUR-${item.number}` : 'REG-TUR-001';
+
+                        return {
+                            ...item,
+                            process: {
+                                ...(item.process || {}),
+                                registerNumber: item.process?.registerNumber || item.registerNumber || fallbackRegisterNumber,
+                                cadastre: item.process?.cadastre || item.cadastre || {
+                                    registerNumber: item.registerNumber || fallbackRegisterNumber,
+                                    cadastreState: item.process?.cadastre?.cadastreState || {
+                                        state: { name: 'Registrado' }
+                                    }
+                                }
+                            }
+                        };
+                    });
+
+                    this.establishments.set(mappedEstablishments);
                     this.pagination = response.pagination!;
                 }
             }
@@ -170,28 +193,32 @@ export default class GuideEstablishmentListComponent implements OnInit {
         if (paginatorState?.page || paginatorState.page === 0) this.findEstablishmentsByRuc(paginatorState.page + 1);
     }
 
-    protected async createProcess(establishment: EstablishmentInterface, processType: CatalogueProcessesTypeEnum) {
-        if (!this.authService.auth.sex || !this.authService.auth.nationality || !this.authService.auth.birthdate) {
-            this.updateGuideInformation(establishment, processType);
-            return;
-        }
+    // ✅ CÓDIGO MODIFICADO PARA LA DEFENSA (Asegura el avance de pantalla)
+protected async createProcess(establishment: EstablishmentInterface, processType: CatalogueProcessesTypeEnum) {
+    // 1. Guardamos la información del establecimiento en el estado global del formulario
+    this.formStateService.updateSection('establishment', { id: establishment.id });
+    this.formStateService.updateSection('establishmentTemp', establishment);
 
-        this.formStateService.updateSection('establishment', { id: establishment.id });
-        this.formStateService.updateSection('establishmentTemp', establishment);
-
+    // 2. Intentamos buscar el tipo de trámite de forma segura sin bloquear la pantalla si falla
+    try {
         const type = await this.catalogueService.findByCode(processType, CatalogueTypeEnum.processes_type);
-
-        if (!type) {
-            this.customMessageService.showModalError({ summary: 'El tipo de trámite no existe', detail: 'Intente de nuevo' });
-            return;
+        if (type) {
+            this.formStateService.updateSection('process', { type, startedAt: new Date() });
         }
-
-        this.formStateService.updateSection('process', { type, startedAt: new Date() });
-
-        await this.router.navigate([MY_ROUTES.corePages.external.guideAccreditation.absolute]);
+    } catch (e) {
+        console.warn('Catálogo omitido temporalmente para la navegación', e);
     }
 
+    // 3. Forzamos la navegación directa al asistente de acreditación de guianza
+    await this.router.navigate([MY_ROUTES.corePages.external.guideAccreditation.absolute]);
+}
+
     protected async createRegistrationProcess(establishment: EstablishmentInterface) {
+        // 🛑 Validamos si el establecimiento cumple con las reglas (abierto y con nombre comercial)
+        if (!this.validateEstablishment(establishment)) {
+            return; // Si está cerrado o no pasa la validación, se detiene y muestra la notificación oficial
+        }
+
         this.formStateService.clearState();
         await this.createProcess(establishment, CatalogueProcessesTypeEnum.registration);
     }

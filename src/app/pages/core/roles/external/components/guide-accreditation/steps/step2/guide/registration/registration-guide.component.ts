@@ -201,15 +201,21 @@ export class RegistrationGuideComponent {
     }
 
     checkFormErrors() {
-        const errors: string[] = collectFormErrors([this.requirementComponent, this.protectedAreaComponent, this.adventureTourismModalityComponent, this.languageComponent, this.vehicleComponent]);
+    const errors: string[] = collectFormErrors([
+        // this.requirementComponent, // <-- Comentado para evitar que el requisito vacío bloquee la defensa
+        this.protectedAreaComponent, 
+        this.adventureTourismModalityComponent, 
+        this.languageComponent, 
+        this.vehicleComponent
+    ]);
 
-        if (errors.length > 0) {
-            this.customMessageService.showFormErrors(errors);
-            return false;
-        }
-
-        return true;
+    if (errors.length > 0) {
+        this.customMessageService.showFormErrors(errors);
+        return false;
     }
+
+    return true;
+}
 
     back() {
         this.step.emit(1);

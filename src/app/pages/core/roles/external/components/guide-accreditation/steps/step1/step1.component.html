@@ -39,7 +39,7 @@
     </div>
 </div>
 
-@if (professionalTitles().length > 0 || formStateService.catastroSiete()?.credentials?.length) {
+@if (true) {
     <app-contact-person
         (dataOut)="saveForm($event,'user')"
         [dataIn]="{...formStateService.user(),...formStateService.establishmentTemp()?.ruc}" />

@@ -36,10 +36,11 @@ export const coreInterceptor: HttpInterceptorFn = (req, next) => {
                     // const resHeaders = event.headers; // <-- headers de respuesta
 
                     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
-                        if (!event.url?.includes('refresh-token')) {
-                            customMessageService.showHttpSuccess(event.body);
-                        }
-                    }
+    // Evita que salgan alertas masivas automáticas en la sección de guianza o establecimientos si no lo deseas
+    if (!event.url?.includes('refresh-token') && !event.url?.includes('guide') && !event.url?.includes('establishment')) {
+        customMessageService.showHttpSuccess(event.body);
+    }
+}
 
                     if (['GET'].includes(req.method)) {
                         if (event.url?.includes('transactional-codes')) {

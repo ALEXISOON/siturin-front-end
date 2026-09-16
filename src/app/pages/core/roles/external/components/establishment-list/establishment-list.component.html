@@ -17,7 +17,7 @@
 
 <div class="custom-form-card">
     <div class="custom-form-grid md:grid-cols-12">
-        <div class=" custom-form-field md:col-span-12">
+        <div class="custom-form-field md:col-span-12">
             <p-table
                 [value]="establishments()"
                 stripedRows
@@ -39,6 +39,7 @@
                     let-item
                     let-rowIndex="rowIndex">
                     <tr>
+                        <!-- Opciones (Botón gestionar o crear trámite) -->
                         <td class="justify-center">
                             @if (item.process) {
                                 <p-button
@@ -54,9 +55,11 @@
                                     (click)="onSelect({item,index:rowIndex})" />
                             }
                         </td>
+                        <!-- Número de establecimiento -->
                         <td>
                             {{ item.number }}
                         </td>
+                        <!-- Nombre comercial y estado SRI -->
                         <td>
                             @if (item.tradeName) {
                                 <p>
@@ -76,31 +79,51 @@
                                 <p-tag severity="danger" value="SIN NOMBRE COMERCIAL SRI" />
                             }
                         </td>
+                        <!-- Ubicación flexible (lee del proceso o del item directo) -->
                         <td>
-                            @if (item.process) {
-                                {{ item.process.establishment.province.name }}
-                                {{ item.process.establishment.canton.name }}
-                                {{ item.process.establishment.parish.name }}
+                            @if (item.process?.establishment) {
+                                {{ item.process.establishment.province?.name }}
+                                {{ item.process.establishment.canton?.name }}
+                                {{ item.process.establishment.parish?.name }}
                                 {{ item.process.establishment.mainStreet }},
                                 {{ item.process.establishment.numberStreet }},
                                 {{ item.process.establishment.secondaryStreet }}
-                            }
-                        </td>
-                        <td>
-                            @if (item.process) {
-                                {{ item.process.activity.name }}
-                            }
-                        </td>
-                        <td>
-                            @if (item.process) {
-                                {{ item.process.cadastre.registerNumber }}
+                            } @else if (item.mainStreet || item.address) {
+                                {{ item.mainStreet || item.address }}
                             } @else {
-                                Sin Registro
+                                <span class="text-gray-400">Dirección según SRI</span>
                             }
                         </td>
+                        <!-- Actividad -->
                         <td>
-                            @if (item.process) {
-                                {{ item.process.cadastre.cadastreState.state.name }}
+                            @if (item.process?.activity?.name) {
+                                {{ item.process.activity.name }}
+                            } @else if (item.process) {
+                                <span class="font-semibold">GUIANZA TURÍSTICA</span>
+                            }
+                        </td>
+                        <!-- Número de Registro -->
+                        <td>
+                            @if (item.process?.cadastre?.registerNumber) {
+                                <span class="font-semibold">{{ item.process.cadastre.registerNumber }}</span>
+                            } @else if (item.process?.registerNumber) {
+                                <span>{{ item.process.registerNumber }}</span>
+                            } @else if (item.registerNumber) {
+                                <span>{{ item.registerNumber }}</span>
+                            } @else {
+                                <span class="text-gray-400">-</span>
+                            }
+                        </td>
+                        <!-- Estado Catastro / Registro -->
+                        <td>
+                            @if (item.process?.cadastre?.cadastreState?.state?.name) {
+                                <p-tag severity="success" [value]="item.process.cadastre.cadastreState.state.name" />
+                            } @else if (item.process?.status?.name) {
+                                <p-tag severity="warn" [value]="item.process.status.name" />
+                            } @else if (item.statusName) {
+                                <p-tag severity="success" [value]="item.statusName" />
+                            } @else {
+                                <span class="text-gray-400">-</span>
                             }
                         </td>
                     </tr>
@@ -116,7 +139,6 @@
             [totalRecords]="pagination.totalItems" />
     }
 </div>
-
 
 @if (isButtonActionsEnabled) {
     <app-button-action

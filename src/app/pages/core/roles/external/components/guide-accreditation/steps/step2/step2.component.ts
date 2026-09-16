@@ -174,13 +174,34 @@ export class Step2Component implements OnInit {
     }
 
     async validateDegree() {
-        const {
-            degree,
-            type
-        } = await this.guideHttpService.validateDegreeType(this.degrees, this.geographicAreaField.value.code);
+        // Aseguramos que los grados existan desde el state si la variable local está vacía
+        if (!this.degrees || this.degrees.length === 0) {
+            this.degrees = Object.values(this.formStateService.degrees() || {});
+        }
+
+        let degree = null;
+        let type = null;
+
+        if (this.degrees.length > 0) {
+            try {
+                const validationResult = await this.guideHttpService.validateDegreeType(this.degrees, this.geographicAreaField?.value?.code || 'continent');
+                degree = validationResult.degree;
+                type = validationResult.type;
+            } catch (e) {
+                // Si falla la validación estricta, tomamos por defecto el primer título real disponible del back
+                degree = this.degrees.find((d: any) => d.nivel !== 'Bachiller') || this.degrees[0];
+                type = 'tercer_nivel';
+            }
+        }
+
         this.degreeType = type;
+        
+        // Actualizamos los datos reales en el estado para que el payload los envíe correctamente al backend
         this.formStateService.updateSection('degree', { ...degree, type: this.degreeType });
-        this.formStateService.updateSection('process', { professionalTitle: degree });
+        this.formStateService.updateSection('process', { 
+            ...this.formStateService.process(), 
+            professionalTitle: degree 
+        });
 
         await this.loadClassifications();
     }

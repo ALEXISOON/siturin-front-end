@@ -134,25 +134,25 @@ export default class UserProfileComponent implements OnInit {
     }
 
     buildForm() {
-        this.form = this.formBuilder.group({
-            identification: [{ value: null, disabled: true }, [Validators.required]],
-            username: [null, [Validators.required]],
-            name: [{ value: null, disabled: true }, [Validators.required]],
-            lastname: [null],
-            email: [null, [Validators.required, invalidEmailValidator()]],
-            cellPhone: [null],
-            phone: [null],
-            birthdate: [{ value: null, disabled: true }, [Validators.required]],
-            sex: [{ value: null, disabled: true }, [Validators.required]],
-            nationality: [{ value: null, disabled: true }, [Validators.required]],
-            personalEmail: [null],
-            identificationType: [{ value: null, disabled: true }, [Validators.required]],
-            avatar: [null],
-            emailVerifiedAt: [{ value: null, disabled: true }]
-        });
+    this.form = this.formBuilder.group({
+        identification: [null, [Validators.required]], // <-- Cambiado a habilitado
+        username: [null, [Validators.required]],
+        name: [null, [Validators.required]],         // <-- Cambiado a habilitado
+        lastname: [null],
+        email: [null, [Validators.required, invalidEmailValidator()]],
+        cellPhone: [null],
+        phone: [null],
+        birthdate: [null, [Validators.required]],     // <-- Cambiado a habilitado
+        sex: [null, [Validators.required]],           // <-- Cambiado a habilitado
+        nationality: [null, [Validators.required]],   // <-- Cambiado a habilitado
+        personalEmail: [null],
+        identificationType: [null, [Validators.required]], // <-- Cambiado a habilitado
+        avatar: [null],
+        emailVerifiedAt: [null]
+    });
 
-        this.watchFormChanges();
-    }
+    this.watchFormChanges();
+}
 
     watchFormChanges() {
         this.identificationField.valueChanges.subscribe((value) => {
