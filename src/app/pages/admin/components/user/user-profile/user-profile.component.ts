@@ -166,8 +166,8 @@ export default class UserProfileComponent implements OnInit {
     this.form = this.formBuilder.group({
         identification: [null, [Validators.required]], // <-- Cambiado a habilitado
         username: [null, [Validators.required]],
-        name: [null, [Validators.required, invalidNameValidator()]],
-        lastname: [null],
+        name: [null, [Validators.required, Validators.pattern(/^[A-ZÁÉÍÓÚÑ\s]+$/)]],
+        lastname: [null, [Validators.pattern(/^[A-ZÁÉÍÓÚÑ\s]+$/)]],
         email: [null, [Validators.required, invalidEmailValidator()]],
         cellPhone: [null],
         phone: [null],
@@ -184,10 +184,24 @@ export default class UserProfileComponent implements OnInit {
 }
 
     watchFormChanges() {
-        this.identificationField.valueChanges.subscribe((value) => {
-            this.usernameField.setValue(value);
-        });
-    }
+    this.identificationField.valueChanges.subscribe((value) => {
+        this.usernameField.setValue(value);
+    });
+
+    // Convierte a mayúsculas automáticamente el campo nombres
+    this.nameField.valueChanges.subscribe((value) => {
+        if (value && value !== value.toUpperCase()) {
+            this.nameField.setValue(value.toUpperCase(), { emitEvent: false });
+        }
+    });
+
+    // Convierte a mayúsculas automáticamente el campo apellidos
+    this.lastnameField.valueChanges.subscribe((value) => {
+        if (value && value !== value.toUpperCase()) {
+            this.lastnameField.setValue(value.toUpperCase(), { emitEvent: false });
+        }
+    });
+}
 
     find(id: string) {
         this.userHttpService.findProfile(id).subscribe({
