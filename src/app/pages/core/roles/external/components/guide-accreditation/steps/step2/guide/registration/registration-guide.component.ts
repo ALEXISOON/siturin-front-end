@@ -202,7 +202,7 @@ export class RegistrationGuideComponent {
 
     checkFormErrors() {
     const errors: string[] = collectFormErrors([
-        // this.requirementComponent, // <-- Comentado para evitar que el requisito vacío bloquee la defensa
+        this.requirementComponent, // <-- Comentado para evitar que el requisito vacío bloquee la defensa
         this.protectedAreaComponent, 
         this.adventureTourismModalityComponent, 
         this.languageComponent, 

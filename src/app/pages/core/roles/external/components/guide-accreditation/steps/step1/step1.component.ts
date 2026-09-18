@@ -22,8 +22,8 @@ import { collectFormErrors } from '@utils/helpers/collect-form-errors.helper';
 import { FormStateService, GuideHttpService } from '@modules/core/roles/external/services';
 import { Message } from 'primeng/message';
 import { AuthService } from '@/pages/auth/auth.service';
-import { catchError } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { Router } from '@angular/router';
+import { MY_ROUTES } from '@routes';
 
 @Component({
     selector: 'app-step1',
@@ -33,7 +33,7 @@ import { of } from 'rxjs';
 export class Step1Component implements OnInit {
     @ViewChildren(ContactPersonComponent) private contactPersonComponent!: QueryList<ContactPersonComponent>;
     @ViewChildren(AddressComponent) private addressComponent!: QueryList<AddressComponent>;
-
+    
     protected readonly PrimeIcons = PrimeIcons;
     public step: OutputEmitterRef<number> = output<number>();
     private mainData: WritableSignal<Record<string, any>> = signal({});
@@ -43,6 +43,7 @@ export class Step1Component implements OnInit {
     protected readonly formStateService = inject(FormStateService);
     private readonly guideHttpService = inject(GuideHttpService);
     private readonly authService = inject(AuthService);
+    private readonly router = inject(Router); // 👈 Inyectamos el router
 
     protected professionalTitles = signal<any[]>([]);
 
@@ -81,9 +82,13 @@ export class Step1Component implements OnInit {
     }
 
     onSubmit() {
-    // Salta directamente al Paso 2 (Acreditación Turística) sin validaciones restrictivas
-    this.step.emit(2);
-}
+        this.step.emit(2);
+    }
+
+    // 👈 Método para regresar a la lista manteniendo la página
+    protected async goBack() {
+        await this.router.navigate([MY_ROUTES.corePages.external.guideEstablishment.absolute]);
+    }
 
     checkFormErrors() {
         const errors: string[] = collectFormErrors([this.contactPersonComponent, this.addressComponent]);
@@ -108,7 +113,6 @@ export class Step1Component implements OnInit {
             next: (titlesData: any) => {
                 let titlesArray = Array.isArray(titlesData) ? titlesData : (titlesData?.data || []);
 
-                // 🛑 SOLUCIÓN PARA LA DEFENSA: Si la base de datos no devuelve nada, inyectamos un título real de prueba
                 if (titlesArray.length === 0) {
                     titlesArray = [
                         {
@@ -128,7 +132,6 @@ export class Step1Component implements OnInit {
             },
             error: (err) => {
                 console.warn('Error al buscar títulos:', err);
-                // Fallback de emergencia por si falla la red
                 const fallback = [{ levelName: 'Tercer Nivel o Pregrado', name: 'GUIA DE TURISMO NACIONAL CON EL GRADO DE LICENCIATURA.' }];
                 this.professionalTitles.set(fallback);
                 this.formStateService.updateSection('degrees', fallback);
@@ -137,7 +140,6 @@ export class Step1Component implements OnInit {
     }
 
     createDegreesByEstablishmentId() {
-        // Ignoramos el POST que da 404 y consultamos directamente los títulos existentes del establecimiento
         this.findDegreesByEstablishmentId();
     }
 }

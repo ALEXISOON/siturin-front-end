@@ -49,6 +49,16 @@
 
     <div class="custom-form-card">
         <div class="custom-form-grid md:grid-cols-12">
+            <!-- 👈 Botón Regresar añadido a la izquierda -->
+            <div class="custom-form-field md:col-span-3">
+                <p-button
+                    label="Regresar"
+                    styleClass="p-button-secondary w-full"
+                    [icon]="PrimeIcons.ARROW_LEFT"
+                    (onClick)="goBack()" />
+            </div>
+
+            <!-- Botón Siguiente existente a la derecha -->
             <div class="custom-form-field md:col-start-10 md:col-span-3">
                 <p-button
                     label="Siguiente"

@@ -61,13 +61,19 @@ export class ContactPersonComponent implements OnInit {
     }
 
     buildForm() {
+        // Extraemos tus datos directamente del authService (igual que la nacionalidad y sexo)
+        const auth = (this.authService as any).auth || {};
+        const nombres = auth.nombres || auth.names || auth.firstName || '';
+        const apellidos = auth.apellidos || auth.lastNames || auth.lastName || '';
+        const nombreCompleto = `${nombres} ${apellidos}`.trim();
+
         this.form = this.formBuilder.group({
             hasDisability: [null, [Validators.required]],
             bloodType: [null, [Validators.required]],
             phone: [null, [Validators.required, Validators.minLength(10), Validators.maxLength(10), Validators.pattern(/^09\d{8}$/)]],
             secondaryPhone: [null, [Validators.minLength(10), Validators.maxLength(10)]],
             email: [null, [invalidEmailValidator(), invalidEmailDomainValidator()]],
-            legalName: [{ value: null, disabled: true }],
+            legalName: [{ value: nombreCompleto, disabled: true }],        
             nationality: [{ value: this.authService.auth?.nationality?.name, disabled: true }],
             sex: [{ value: this.authService.auth?.sex?.name, disabled: true }],
             birthdate: [{ value: this.authService.auth?.birthdate, disabled: true }]
@@ -89,29 +95,76 @@ export class ContactPersonComponent implements OnInit {
     getFormErrors(): string[] {
         const errors: string[] = [];
 
-        if (this.hasDisabilityField.invalid) errors.push('Discapacidad');
+        // Valida los campos de este componente hijo
+        if (this.form.get('hasDisability')?.invalid) errors.push('Discapacidad');
+        if (this.form.get('bloodType')?.invalid) errors.push('Tipo de sangre');
+        if (this.form.get('phone')?.invalid) errors.push('Número de teléfono principal');
+        if (this.form.get('email')?.invalid) errors.push('Correo electrónico secundario');
 
-        if (this.bloodTypeField.invalid) errors.push('Tipo de Sangre');
-
-        if (this.phoneField.invalid) errors.push('Número de Teléfono Principal');
-
-        if (this.emailField.invalid) errors.push('Correo Electrónico');
-
+        // Marca todo como tocado para que aparezcan los mensajes en rojo en pantalla
         if (errors.length > 0) {
             this.form.markAllAsTouched();
-            return errors;
         }
 
-        return [];
+        return errors;
     }
-
     loadData() {
         if (this.dataIn()) {
+            const incomingData: any = this.dataIn();
+            const contactPerson: any = incomingData?.establishmentContactPerson;
+            const tempContact: any = this.formStateService.establishmentTemp()?.establishmentContactPerson;
+            
+            // 1. Buscamos si el trámite ya tiene un nombre histórico guardado de forma segura
+            const historicalName = incomingData?.legalName || 
+                                   contactPerson?.legalName || 
+                                   incomingData?.name || 
+                                   tempContact?.legalName;
 
-            this.form.patchValue(this.dataIn());
-            this.phoneField.patchValue(this.formStateService.establishmentTemp()?.establishmentContactPerson?.phone);
-            this.secondaryPhoneField.patchValue(this.formStateService.establishmentTemp()?.establishmentContactPerson?.secondaryPhone);
-            this.emailField.patchValue(this.formStateService.establishmentTemp()?.establishmentContactPerson?.email);
+            // Verificamos que sea un nombre válido y no el texto genérico por defecto
+            const hasValidHistoricalName = historicalName && 
+                                           typeof historicalName === 'string' &&
+                                           historicalName.trim() !== '' && 
+                                           historicalName !== 'NOMBRES PERSONA JURIDICA';
+
+            let finalLegalName = '';
+
+            if (hasValidHistoricalName) {
+                // CASO A: El trámite ya tiene su propio nombre histórico. LO RESPETAMOS.
+                finalLegalName = historicalName;
+            } else {
+                // CASO B: Es un trámite nuevo sin nombre, usamos el perfil actual del usuario.
+                const userState = (this.formStateService.user ? (typeof this.formStateService.user === 'function' ? this.formStateService.user() : this.formStateService.user) : {}) || {};
+                const auth = (this.authService as any).auth || {};
+                
+                const source = userState.nombres ? userState : auth;
+                const persona = source.persona || source.person || source.user || source;
+
+                const nombres = persona.nombres || source.nombres || source.name || '';
+                const apellidos = persona.apellidos || source.apellidos || source.lastname || '';
+                
+                finalLegalName = `${nombres} ${apellidos}`.trim() || auth.name || '';
+            }
+
+            // 2. Parcheamos el resto de los datos del formulario evitando pisar el legalName
+            const dataToPatch: any = { ...incomingData };
+            delete dataToPatch.legalName;
+
+            this.form.patchValue(dataToPatch);
+            
+            if (tempContact?.phone) {
+                this.phoneField.patchValue(tempContact.phone);
+            }
+            if (tempContact?.secondaryPhone) {
+                this.secondaryPhoneField.patchValue(tempContact.secondaryPhone);
+            }
+            if (tempContact?.email) {
+                this.emailField.patchValue(tempContact.email);
+            }
+
+            // 3. Asignamos el nombre final
+            if (finalLegalName) {
+                this.form.get('legalName')?.setValue(finalLegalName);
+            }
         }
     }
 

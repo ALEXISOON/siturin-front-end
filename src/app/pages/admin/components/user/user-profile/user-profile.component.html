@@ -127,6 +127,9 @@
                         [errors]="nameField.errors"
                         [touched]="nameField.touched"
                         [dirty]="nameField.dirty"></small>
+                        @if (nameField.hasError('invalidName') && (nameField.touched || nameField.dirty)) {
+        <small class="p-error block mt-1">Debe ingresar un nombre personal válido.</small>
+    }
                 </div>
 
                 <!-- personalEmailField -->
@@ -168,6 +171,9 @@
                         [errors]="birthdateField.errors"
                         [touched]="birthdateField.touched"
                         [dirty]="birthdateField.dirty"></small>
+                        @if (birthdateField.hasError('minAge') && (birthdateField.touched || birthdateField.dirty)) {
+        <small class="p-error block mt-1">El usuario debe ser mayor de 18 años.</small>
+    }
                 </div>
 
                 <!-- sexField -->

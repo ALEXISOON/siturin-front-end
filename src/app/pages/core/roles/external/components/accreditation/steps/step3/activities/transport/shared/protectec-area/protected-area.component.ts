@@ -29,11 +29,11 @@ export class ProtectedAreaComponent implements OnInit {
     }
 
     buildForm(): void {
-        this.form = this.formBuilder.group({
-            isProtectedArea: [false, Validators.required],
-            hasProtectedAreaContract: [false, Validators.required]
-        });
-    }
+    this.form = this.formBuilder.group({
+        isProtectedArea: [null, Validators.required], // <-- Cambia 'false' por 'null'
+        hasProtectedAreaContract: [false, Validators.required]
+    });
+}
 
     get isProtectedAreaField(): AbstractControl {
         return this.form.controls['isProtectedArea'];

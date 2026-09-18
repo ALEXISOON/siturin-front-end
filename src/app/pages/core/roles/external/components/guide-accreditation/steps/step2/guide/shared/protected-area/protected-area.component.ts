@@ -127,18 +127,25 @@ export class ProtectedAreaComponent implements OnInit {
         this.provinces.set(await this.dpaService.findProvinces());
     }
 
-    getFormErrors() {
-        const errors: string[] = [];
+    getFormErrors(): string[] {
+    const errors: string[] = [];
 
-        if (!this.hasProtectedAreaField.value && this.items.length === 0) errors.push('Áreas Protegidas ó Cantón');
-
-        if (errors.length > 0) {
-            this.form.markAllAsTouched();
-            return errors;
-        }
-
-        return [];
+    // Pregunta principal del PANE
+    if (this.hasProtectedAreaField && this.hasProtectedAreaField.enabled && this.hasProtectedAreaField.invalid) {
+        errors.push('¿Usted va a desarrollar la actividad dentro del PANE?');
     }
+
+    // Selección de Área Protegida / Cantón
+    if (this.hasProtectedAreaField && this.hasProtectedAreaField.enabled && this.hasProtectedAreaField.invalid) {
+        errors.push('Datos personales o Datos de residencia');
+    }
+
+    if (errors.length > 0) {
+        this.form.markAllAsTouched();
+    }
+
+    return errors;
+}
 
     createItems() {
         this.items = [];
@@ -154,7 +161,7 @@ export class ProtectedAreaComponent implements OnInit {
                 });
             }
         } else {
-            console.log('Noooooooooooooooooooo');
+            console.log('No');
             this.items = [
                 {
                     province: this.provinceField.value,

@@ -175,23 +175,63 @@ export class RequirementComponent implements OnInit {
     }
 
     getFormErrors(): string[] {
-        const errors: string[] = [];
+    const errors: string[] = [];
 
-        if (this.rucField.invalid) errors.push('Registro Único de Contribuyentes (RUC)');
-        if (this.photoField.invalid) errors.push('Fotografía emitida en los últimos 6 meses');
-        if (this.certificationGuideField.invalid) errors.push(this.requirementItems.get(this.certificationGuide)?.name);
-        if (this.certificationAuxField.invalid) errors.push(this.requirementItems.get(this.certificationAux)?.name);
-        if (this.certificationJobSkillField.invalid) errors.push(this.requirementItems.get(this.certificationJobSkill)?.name);
-        if (this.degreeField.invalid) errors.push(this.requirementItems.get(this.degreeName)?.name);
-        if (this.domicileDeclarationField.invalid) errors.push('Declaración responsable del domicilio del solicitante que ejercerá la actividad de guianza turística');
-
-        if (errors.length > 0) {
-            this.form.markAllAsTouched();
-            return errors;
-        }
-
-        return [];
+    if (!this.form || this.form.valid) {
+        return errors;
     }
+
+    const reqList = Array.isArray(this.requirements) 
+        ? this.requirements 
+        : (this.requirements ? [this.requirements] : []);
+
+    // Recorre solo los controles que están habilitados e inválidos
+    Object.keys(this.form.controls).forEach((key) => {
+        const control = this.form.get(key);
+
+        if (control && control.enabled && control.invalid) {
+            // Busca el objeto de requisito correspondiente al control
+            const req: any = reqList.find((r: any) => 
+                String(r?.id) === key || 
+                String(r?.code) === key || 
+                String(r?.requirement?.id) === key ||
+                String(r?.requirement?.code) === key
+            ) || reqList[0];
+
+            if (req) {
+                const title = this.formatRequirementTitle(req);
+                if (title && !errors.includes(title)) {
+                    errors.push(title);
+                }
+            }
+        }
+    });
+
+    if (errors.length > 0) {
+        this.form.markAllAsTouched();
+    }
+
+    return errors;
+}
+
+private formatRequirementTitle(req: any): string {
+    const rawText = req?.requirement?.name || req?.name || req?.label || req?.description || '';
+    
+    // 1. Remueve etiquetas HTML (<p>, </p>, <span>, etc.)
+    let cleanText = String(rawText).replace(/<[^>]*>?/gm, '').trim();
+
+    // 2. Extrae solo el título o encabezado principal (antes del primer dos puntos)
+    if (cleanText.includes(':')) {
+        cleanText = cleanText.split(':')[0].trim();
+    }
+
+    // 3. Recorta la longitud máxima a 60 caracteres si no hay dos puntos
+    if (cleanText.length > 60) {
+        cleanText = cleanText.substring(0, 60) + '...';
+    }
+
+    return cleanText || 'Requisito pendiente';
+}
 
     changeDomicileDeclaration(event: any) {
         this.domicileDeclarationField.patchValue({

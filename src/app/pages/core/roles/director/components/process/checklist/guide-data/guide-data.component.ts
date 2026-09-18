@@ -67,10 +67,13 @@ export class GuideDataComponent implements OnInit {
             phone: [{ value: null, disabled: true }],
             secondaryPhone: [{ value: null, disabled: true }],
             email: [{ value: null, disabled: true }],
-            legalName: [{ value: null, disabled: true }],
-            nationality: [{ value: null, disabled: true }],
-            sex: [{ value: null, disabled: true }],
-            birthdate: [{ value: null, disabled: true }],
+            
+            // CÁMBIALOS A FALSE AQUÍ:
+            legalName: [{ value: null, disabled: false }],
+            nationality: [{ value: null, disabled: false }],
+            sex: [{ value: null, disabled: false }],
+            birthdate: [{ value: null, disabled: false }],
+            
             province: [{ value: null, disabled: true }],
             canton: [{ value: null, disabled: true }],
             parish: [{ value: null, disabled: true }],

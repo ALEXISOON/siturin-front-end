@@ -56,6 +56,7 @@ export default class GuideEstablishmentListComponent implements OnInit {
     protected establishment = signal<EstablishmentInterface>({});
     protected selectedItem!: EstablishmentInterface;
     protected pagination!: PaginationInterface;
+    protected currentFirst = Number(sessionStorage.getItem('guide_establishment_first')) || 0;
     protected readonly FontAwesome = FontAwesome;
     protected buttonActions: MenuItem[] = [];
     protected isButtonActionsEnabled: boolean = false;
@@ -64,7 +65,7 @@ export default class GuideEstablishmentListComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly establishmentHttpService = inject(EstablishmentHttpService);
     private readonly rucHttpService = inject(RucHttpService);
-    private readonly authService = inject(AuthService);
+    protected authService = inject(AuthService);
     private readonly guideHttpService = inject(GuideHttpService);
     private readonly reportsHttpService = inject(ReportsHttpService);
     private readonly catalogueService = inject(CatalogueService);
@@ -81,7 +82,7 @@ export default class GuideEstablishmentListComponent implements OnInit {
         this.updateSRIEstablishments();
     }
 
-    findEstablishmentsByRuc(page = 1, search = null) {
+    findEstablishmentsByRuc(page = Number(sessionStorage.getItem('guide_establishment_page')) || 1, search = null) {
         this.rucHttpService.findEstablishmentsByRuc(page, search, this.authService.auth.identification!).subscribe({
             next: (response) => {
                 const establishment = (response.data as EstablishmentInterface[]).find((item) => item.isCadastre);
@@ -89,7 +90,6 @@ export default class GuideEstablishmentListComponent implements OnInit {
                 if (establishment && establishment.isCadastre) {
                     this.establishmentHttpService.findCadastreByEstablishment(establishment.id!).subscribe({
                         next: (responseCadastre) => {
-                            console.log(responseCadastre);
                             this.establishment.set(responseCadastre);
 
                             if (this.establishment().currentProcess) {
@@ -104,10 +104,9 @@ export default class GuideEstablishmentListComponent implements OnInit {
                         }
                     });
                 } else {
-                    // MAPEO INTELIGENTE: Solo inyectamos datos si el establecimiento realmente tiene trámite o registro
                     const mappedEstablishments = (response.data as EstablishmentInterface[]).map((item: any) => {
                         if (!item.process && !item.registerNumber) {
-                            return item; // Si no tiene trámite, lo devolvemos intacto para que aparezca el botón verde de "Crear Trámite"
+                            return item;
                         }
 
                         const fallbackRegisterNumber = item.number ? `REG-TUR-${item.number}` : 'REG-TUR-001';
@@ -129,6 +128,12 @@ export default class GuideEstablishmentListComponent implements OnInit {
 
                     this.establishments.set(mappedEstablishments);
                     this.pagination = response.pagination!;
+
+                    // 👈 Guardamos y sincronizamos la página actual y el primer índice exacto
+                    const limit = response.pagination?.limit || 10;
+                    this.currentFirst = (page - 1) * limit;
+                    sessionStorage.setItem('guide_establishment_page', page.toString());
+                    sessionStorage.setItem('guide_establishment_first', this.currentFirst.toString());
                 }
             }
         });
@@ -137,7 +142,9 @@ export default class GuideEstablishmentListComponent implements OnInit {
     updateSRIEstablishments() {
         this.establishmentHttpService.updateSRIEstablishments(this.authService.auth.identification!).subscribe({
             next: () => {
-                this.findEstablishmentsByRuc();
+                // 👈 Pasamos explícitamente la página guardada en sesión para que no se reinicie
+                const savedPage = Number(sessionStorage.getItem('guide_establishment_page')) || 1;
+                this.findEstablishmentsByRuc(savedPage);
             }
         });
     }
@@ -190,7 +197,15 @@ export default class GuideEstablishmentListComponent implements OnInit {
     }
 
     onPagination(paginatorState: PaginatorState) {
-        if (paginatorState?.page || paginatorState.page === 0) this.findEstablishmentsByRuc(paginatorState.page + 1);
+        if (paginatorState?.page || paginatorState.page === 0) {
+            const pageNum = paginatorState.page + 1;
+            const firstValue = paginatorState.first ?? 0;
+            
+            sessionStorage.setItem('guide_establishment_page', pageNum.toString());
+            sessionStorage.setItem('guide_establishment_first', firstValue.toString());
+            this.currentFirst = firstValue;
+            this.findEstablishmentsByRuc(pageNum);
+        }
     }
 
     // ✅ CÓDIGO MODIFICADO PARA LA DEFENSA (Asegura el avance de pantalla)
@@ -288,6 +303,14 @@ protected async createProcess(establishment: EstablishmentInterface, processType
                 this.updateSRIEstablishments();
             });
         }
+    }
+
+    protected getFullName(): string {
+        const auth = this.authService?.auth;
+        if (!auth) return '';
+        const name = auth.name || '';
+        const lastname = auth.lastname || '';
+        return `${name} ${lastname}`.trim();
     }
 
     protected readonly CatalogueEstablishmentsStateEnum = CatalogueEstablishmentsStateEnum;

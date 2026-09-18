@@ -10,6 +10,8 @@ import { SriComponent } from '@modules/core/shared/components/sri/sri.component'
 import { CoreEnum } from '@utils/enums';
 import { collectFormErrors } from '@utils/helpers/collect-form-errors.helper';
 import { ProcessHttpService } from '@/pages/core/shared/services';
+import { ContactPersonComponent } from '@/pages/core/roles/external/components/guide-accreditation/steps/step1/contact-person/contact-person.component';
+import { AddressComponent } from '@/pages/core/roles/external/components/guide-accreditation/steps/step1/address/address.component';
 
 @Component({
     selector: 'app-step1',
@@ -17,6 +19,9 @@ import { ProcessHttpService } from '@/pages/core/shared/services';
     templateUrl: './step1.component.html'
 })
 export class Step1Component implements OnInit {
+    @ViewChildren(ContactPersonComponent) private contactPersonComponent!: QueryList<ContactPersonComponent>;
+    @ViewChildren(AddressComponent) private addressComponent!: QueryList<AddressComponent>;
+
     @Output() step: EventEmitter<number> = new EventEmitter<number>();
     protected readonly PrimeIcons = PrimeIcons;
     protected readonly router = inject(Router);
@@ -50,19 +55,37 @@ export class Step1Component implements OnInit {
         });
     }
 
-    async onSubmit() {
-        if (this.checkFormErrors()) await this.saveProcess();
-    }
-
-    checkFormErrors() {
-        const errors: string[] = collectFormErrors([this.juridicalPersonComponent]);
+    onSubmit() {
+        const errors = this.checkFormErrors();
 
         if (errors.length > 0) {
+            // 👈 Esto abre exactamente el mismo cuadro de diálogo modal con la lista de errores
             this.customMessageService.showFormErrors(errors);
-            return false;
+            return;
         }
 
-        return true;
+        // Si no hay errores, avanza al paso 2
+        this.step.emit(2);
+    }
+
+    checkFormErrors(): string[] {
+        const errors: string[] = [];
+
+        // Recolecta errores del componente de persona de contacto
+        this.contactPersonComponent.forEach(child => {
+            if (child.getFormErrors) {
+                errors.push(...child.getFormErrors());
+            }
+        });
+
+        // Recolecta errores del componente de dirección
+        this.addressComponent.forEach(child => {
+            if (child.getFormErrors) {
+                errors.push(...child.getFormErrors());
+            }
+        });
+
+        return errors;
     }
 
     async saveProcess() {

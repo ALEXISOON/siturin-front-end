@@ -3,7 +3,7 @@ import { UserHttpService } from '@/pages/admin/user-http.service';
 import { BreadcrumbService } from '@layout/service';
 import { CustomMessageService } from '@utils/services';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { LabelDirective } from '@utils/directives/label.directive';
 import { InputText } from 'primeng/inputtext';
 import { ErrorMessageDirective } from '@utils/directives/error-message.directive';
@@ -29,6 +29,35 @@ import { FontAwesome } from '@modules/public/icons/font-awesome';
 import PasswordChangeComponent from '@/pages/admin/components/user/password-change/password-change.component';
 import { MY_ROUTES } from '@routes';
 import { GuideHttpService } from '@/pages/core/roles/external/services';
+
+// Validador para mayores de 18 años
+function minAgeValidator(minAge: number = 18): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+        if (!control.value) return null;
+        const birthDate = new Date(control.value);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age >= minAge ? null : { minAge: true };
+    };
+}
+
+function invalidNameValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+        const value = (control.value || '').trim().toUpperCase();
+        if (!value) return null;
+        
+        // Lista de textos genéricos que no deben permitirse como nombre personal
+        const forbiddenWords = ['NOMBRES PERSONA', 'NOMBRES PERSONA JURIDICA', 'PERSONA JURIDICA', 'SIN NOMBRE'];
+        const isForbidden = forbiddenWords.some(word => value.includes(word));
+
+        return isForbidden ? { invalidName: true } : null;
+    };
+}
+
 
 @Component({
     selector: 'app-user-profile',
@@ -137,12 +166,12 @@ export default class UserProfileComponent implements OnInit {
     this.form = this.formBuilder.group({
         identification: [null, [Validators.required]], // <-- Cambiado a habilitado
         username: [null, [Validators.required]],
-        name: [null, [Validators.required]],         // <-- Cambiado a habilitado
+        name: [null, [Validators.required, invalidNameValidator()]],
         lastname: [null],
         email: [null, [Validators.required, invalidEmailValidator()]],
         cellPhone: [null],
         phone: [null],
-        birthdate: [null, [Validators.required]],     // <-- Cambiado a habilitado
+        birthdate: [null, [Validators.required, minAgeValidator(18)]],
         sex: [null, [Validators.required]],           // <-- Cambiado a habilitado
         nationality: [null, [Validators.required]],   // <-- Cambiado a habilitado
         personalEmail: [null],
@@ -188,6 +217,10 @@ export default class UserProfileComponent implements OnInit {
                 auth.birthdate = this.birthdateField.value;
                 auth.nationality = this.nationalityField.value;
                 auth.sex = this.sexField.value;
+                
+                // ¡AQUÍ ESTABA EL ERROR! Faltaba actualizar el nombre y apellido en la sesión:
+                auth.name = this.nameField.value;
+                auth.lastname = this.lastnameField.value;
 
                 this.authService.auth = auth;
 
@@ -216,12 +249,24 @@ export default class UserProfileComponent implements OnInit {
         const errors: string[] = [];
 
         if (this.identificationField.invalid) errors.push('Identificación');
-        if (this.nameField.invalid) errors.push('Nombres');
+        if (this.nameField.invalid) {
+            if (this.nameField.hasError('invalidName')) {
+                errors.push('El nombre no puede ser un texto genérico');
+            } else {
+                errors.push('Nombres');
+            }
+        }
         if (this.lastnameField.invalid) errors.push('Apellidos');
         if (this.emailField.invalid) errors.push('Correo electrónico');
         if (this.cellPhoneField.invalid) errors.push('Teléfono celular');
         if (this.phoneField.invalid) errors.push('Teléfono');
-        if (this.birthdateField.invalid) errors.push('Fecha de nacimiento');
+        if (this.birthdateField.invalid) {
+            if (this.birthdateField.hasError('minAge')) {
+                errors.push('Debe ser mayor de 18 años');
+            } else {
+                errors.push('Fecha de nacimiento');
+            }
+        }
         if (this.personalEmailField.invalid) errors.push('Correo personal');
         if (this.identificationTypeField.invalid) errors.push('Tipo de identificacion');
         if (this.sexField.invalid) errors.push('Sexo');
@@ -239,4 +284,9 @@ export default class UserProfileComponent implements OnInit {
     goToSecurityQuestions() {
         this.router.navigate([MY_ROUTES.publicPages.securityQuestions.absolute]);
     }
+
+
+
+
+    
 }

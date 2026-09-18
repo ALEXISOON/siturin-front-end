@@ -100,28 +100,28 @@ export class CustomMessageService {
     }
 
     showHttpError(error: string | string[] | any) {
-        if (error) {
-            this._modalLife = error.message.length * 150;
-            let detail = error.message;
+    if (error) {
+        this._modalLife = error.message.length * 150;
+        let detail = error.message;
 
-            if (Array.isArray(error.message)) {
-                this._modalLife = error.message.length * 5000;
-                error.message.sort();
+        if (Array.isArray(error.message)) {
+            // AQUÍ SE CALCULA EL TIEMPO:
+            // Cambia 'error.message.length * 5000' por un tiempo fijo en milisegundos (ejemplo: 4000 = 4 segundos)
+            this._modalLife = 4000; 
 
-                detail = error.message.join('\n');
-            }
-
-            // if (error.error === 'REMAINING_TOKEN') {
-            //     this._modalLife = error.data.remainingSeconds * 1000;
-            // }
-
-            this._messageService.add({
-                severity: 'error',
-                summary: this.errorMessages.get(error.error) ?? error.error,
-                detail
-            });
+            error.message.sort();
+            detail = error.message.join('\n');
         }
+
+        this._messageService.add({
+            severity: 'error',
+            // AQUÍ SE DEFINE EL TÍTULO:
+            // Si quieres cambiar el texto "Unprocessable Entity" por uno personalizado en español:
+            summary: error.error === 'Unprocessable Entity' ? 'Campos Faltantes' : (this.errorMessages.get(error.error) ?? error.error),
+            detail
+        });
     }
+}
 
     showFormErrors(message: string | string[]): void {
         if (Array.isArray(message)) message.sort();

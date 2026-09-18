@@ -119,30 +119,17 @@ export class AddressComponent implements OnInit {
     getFormErrors(): string[] {
         const errors: string[] = [];
 
-        if (this.provinceField.invalid) errors.push('Provincia');
-
-        if (this.cantonField.invalid) errors.push('Cantón');
-
-        if (this.parishField.invalid) errors.push('Parroquia');
-
-        if (this.mainStreetField.invalid) errors.push('Calle Principal');
-
-        if (this.numberStreetField.invalid) errors.push('Numeración');
-
-        if (this.secondaryStreetField.invalid) errors.push('Calle Intersección');
-
-        if (this.referenceStreetField.invalid) errors.push('Referencia de Ubicación');
-
-        if (this.latitudeField.invalid) errors.push('Latitud');
-
-        if (this.longitudeField.invalid) errors.push('Longitud');
+        if (this.form.get('province')?.invalid) errors.push('Provincia');
+        if (this.form.get('canton')?.invalid) errors.push('Cantón');
+        if (this.form.get('parish')?.invalid) errors.push('Parroquia');
+        if (this.form.get('streetPrimary')?.invalid) errors.push('Calle Principal');
+        if (this.form.get('number')?.invalid) errors.push('Numeración');
 
         if (errors.length > 0) {
             this.form.markAllAsTouched();
-            return errors;
         }
 
-        return [];
+        return errors;
     }
 
     loadData() {

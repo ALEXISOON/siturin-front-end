@@ -28,7 +28,7 @@
                         <tr>
                             <th>Opciones</th>
                             <th style="width:3rem">Código de establecimiento SRI</th>
-                            <th>Razón Social</th>
+                            <th>Nombre del Guía</th>
                             <th>Estado Establecimiento</th>
                             <th>Ubicación</th>
                             <th>Actividad Turística</th>
@@ -61,10 +61,14 @@
                                 {{ item.number | establishmentNumber }}
                             </td>
                             <td>
-                                <p>
-                                    {{ item.ruc.legalName }}
-                                </p>
-                            </td>
+    <p>
+        @if (item.process) {
+            {{ getFullName() }}
+        } @else {
+            SIN ASIGNAR
+        }
+    </p>
+</td>
                             <td>
                                 @if (item?.state?.code === CatalogueEstablishmentsStateEnum.open) {
                                     <p-tag severity="info" value="ABIERTO SRI" />
@@ -110,11 +114,12 @@
         </div>
 
         @if (pagination) {
-            <p-paginator
-                (onPageChange)="onPagination($event)"
-                [rows]="pagination.limit"
-                [totalRecords]="pagination.totalItems" />
-        }
+    <p-paginator
+        (onPageChange)="onPagination($event)"
+        [rows]="pagination.limit"
+        [totalRecords]="pagination.totalItems"
+        [first]="currentFirst" />
+}
     </div>
 }
 

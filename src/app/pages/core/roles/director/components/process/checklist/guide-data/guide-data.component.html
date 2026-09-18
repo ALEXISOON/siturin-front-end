@@ -10,7 +10,7 @@
                 appLabel
                 for="legalName"
                 [required]="legalNameField"
-                label="Razón social">
+                label="Nombres del Guía">
             </label>
 
             <input
@@ -88,11 +88,11 @@
                 label="Edad">
             </label>
 
+            <!-- Aquí conectamos el input al formulario y quitamos el disabled -->
             <input
                 pInputText
                 id="birthdate"
-                [value]="birthdateField.value | age"
-                disabled
+                formControlName="birthdate"
             />
 
             <small
