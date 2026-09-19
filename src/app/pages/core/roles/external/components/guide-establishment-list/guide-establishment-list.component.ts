@@ -162,8 +162,29 @@ export default class GuideEstablishmentListComponent implements OnInit {
         }
     }
 
-    onSelect({ item, index }: { item: any; index: number }) {
-        this.findEstablishment(item.id);
+    async onSelect(event: { item: any; index: number }) {
+        const selectedItem = event.item;
+
+        // 1. Aseguramos que el objeto temporal guarde el proceso y el número de registro de la tabla
+        const establishmentData = {
+            ...selectedItem,
+            process: selectedItem.process || {
+                cadastre: {
+                    registerNumber: selectedItem.registerNumber || selectedItem?.process?.cadastre?.registerNumber
+                }
+            }
+        };
+
+        // 2. Guardamos en el estado global
+        this.formStateService.updateSection('establishmentTemp', establishmentData);
+
+        // 3. Validamos si es para Gestionar (tiene proceso) o Crear Trámite (no tiene)
+        if (selectedItem.process) {
+            this.formStateService.updateSection('establishment', { id: selectedItem.id });
+            await this.router.navigate([MY_ROUTES.corePages.external.guideAccreditation.absolute]);
+        } else {
+            await this.createRegistrationProcess(selectedItem);
+        }
     }
 
     findEstablishment(id: string) {

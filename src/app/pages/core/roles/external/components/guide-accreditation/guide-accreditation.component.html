@@ -14,17 +14,13 @@
         </div>
 
         <div class="custom-form-field md:col-span-4">
-            <div>Trámite Seleccionado: <b>{{ formStateService.process()?.type?.name }}</b></div>
+            <div>Trámite Seleccionado: <b>{{ getProcessTypeName() }}</b></div>
         </div>
 
         <div class="custom-form-field md:col-span-6">
             <div>
                 Número de Registro:
-                @if (formStateService.establishmentTemp()?.process?.cadastre?.registerNumber) {
-                    <b>{{ formStateService.establishmentTemp()?.process?.cadastre?.registerNumber }}</b>
-                } @else {
-                    <b>No cuenta con Registro de Turismo</b>
-                }
+                <b>{{ getRegisterNumber() }}</b>
             </div>
         </div>
 

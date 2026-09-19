@@ -9,4 +9,5 @@ export interface EstablishmentInterface {
     tradeName?: string;
     webPage?: string;
     process?: ProcessInterface;
+    registerNumber?: string;
 }

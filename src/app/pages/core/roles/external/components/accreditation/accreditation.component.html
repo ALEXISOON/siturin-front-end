@@ -17,17 +17,16 @@
         </div>
 
         <div class="custom-form-field md:col-span-3">
-            Número de Registro::
-        </div>
+    Número de Registro2:
+</div>
 
-        <div class="custom-form-field md:col-span-9">
-            @if(coreSessionStorageService.establishment()?.process?.cadastre?.registerNumber){
-                <b>{{ coreSessionStorageService.establishment()?.process?.cadastre?.registerNumber }}</b>
-            }@else{
-                <b>Sin Registro</b>
-            }
-        </div>
-    </div>
+<div class="custom-form-field md:col-span-9">
+    @if (coreSessionStorageService.establishment()?.process?.cadastre?.registerNumber) {
+        <b>{{ coreSessionStorageService.establishment()?.process?.cadastre?.registerNumber }}</b>
+    } @else {
+        <b>Sin Registro</b>
+    }
+</div>
 </div>
 
 
